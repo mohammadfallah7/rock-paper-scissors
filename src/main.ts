@@ -2,26 +2,25 @@ import "./output.css";
 import { themeIcon } from "./theme-icon";
 import { getComputerMove } from "./get-computer-move";
 import { determineWinner } from "./determine-winner";
+import { moveIcon } from "./move-icon";
 
 export type Move = "rock" | "paper" | "scissors";
-type LastGame = {
-  playerScore: number;
-  computerScore: number;
-  result: string;
-  playerMove: string;
-  computerMove: string;
-};
 let playerScore = 0;
 let computerScore = 0;
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div class="container mx-auto py-8 px-5 sm:px-0">
+  <div id="play-view" class="container mx-auto h-screen relative pt-8 px-5 sm:px-0 flex items-center justify-between">
+    <button id="play-btn" class="btn btn-primary btn-lg px-12">Play<button>
+    <h1 class="text-4xl text-base-content text-left">Rock Paper Scissors with Compose</h1>
+  </div>
+
+  <div id="game-view" class="container mx-auto pt-8 px-5 sm:px-0 hidden">
     <div class="flex justify-between items-center gap-4">
       <h1 class="text-2xl text-base-content">Rock Paper Scissors with Compose</h1>
       <img id="toggle-theme" alt="Theme" class="cursor-pointer" />
     </div>
 
-    <div class="flex items-center justify-center my-10">
+    <div class="flex items-center justify-center my-8">
       <button id="reset" class="text-lg">RESET THE TOUR</button>
     </div>
 
@@ -36,12 +35,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       </div>
     </div>
 
-    <h2 id="result" class="text-5xl text-center my-12"></h2>
+    <h2 id="result" class="text-5xl text-center my-10"></h2>
 
     <div class="flex justify-around items-center">
-      <div id="player-move"></div>
+      <i id="player-move" style="font-size: 56px"></i>
       <span>vs</span>
-      <div id="computer-move"></div>
+      <i id="computer-move" style="font-size: 56px"></i>
     </div>
 
     <div class="flex flex-col gap-8 mt-16">
@@ -57,6 +56,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const rootEl = <HTMLElement>document.querySelector("html");
 const toggleTheme = <HTMLElement>document.querySelector("#toggle-theme");
+const playBtn = <HTMLButtonElement>document.querySelector("#play-btn");
 const resetEl = <HTMLButtonElement>document.querySelector("#reset");
 const playerScoreEl = <HTMLSpanElement>document.querySelector("#player-score");
 const computerScoreEl = document.querySelector(
@@ -71,6 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentTheme = localStorage.getItem("theme") ?? "light";
   themeIcon(currentTheme, toggleTheme);
   rootEl.setAttribute("data-theme", currentTheme);
+  playerMoveEl.className = "fa-solid fa-question";
+  computerMoveEl.className = "fa-solid fa-question";
 
   toggleTheme.addEventListener("click", (event) => {
     const theme = rootEl.getAttribute("data-theme");
@@ -82,23 +84,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function playGame(playerMove: Move): void {
-  const computerMove = getComputerMove();
+playBtn.addEventListener("click", () => {
+  const playView = <HTMLElement>document.querySelector("#play-view");
+  const gameView = <HTMLElement>document.querySelector("#game-view");
+  playView.classList.toggle("hidden");
+  gameView.classList.toggle("hidden");
+});
 
-  playerMoveEl.textContent = playerMove;
-  computerMoveEl.textContent = computerMove;
+resetEl.addEventListener("click", () => {
+  playerScore = 0;
+  computerScore = 0;
 
-  const result = determineWinner(playerMove, computerMove);
-  resultEl.textContent = result;
-
-  if (result === "COMPUTER WON!") {
-    computerScore = computerScore + 1;
-    computerScoreEl.textContent = computerScore.toString();
-  } else if (result === "YOU WON!") {
-    playerScore = playerScore + 1;
-    playerScoreEl.textContent = playerScore.toString();
-  }
-}
+  playerScoreEl.textContent = playerScore.toString();
+  computerScoreEl.textContent = computerScore.toString();
+  resultEl.textContent = "";
+  playerMoveEl.className = "fa-solid fa-question";
+  computerMoveEl.className = "fa-solid fa-question";
+});
 
 userActions.addEventListener("click", (event) => {
   const button = event.target as HTMLButtonElement;
@@ -114,3 +116,20 @@ userActions.addEventListener("click", (event) => {
       break;
   }
 });
+
+function playGame(playerMove: Move): void {
+  const computerMove = getComputerMove();
+
+  moveIcon(playerMove, playerMoveEl, computerMove, computerMoveEl);
+
+  const result = determineWinner(playerMove, computerMove);
+  resultEl.textContent = result;
+
+  if (result === "COMPUTER WON!") {
+    computerScore = computerScore + 1;
+    computerScoreEl.textContent = computerScore.toString();
+  } else if (result === "YOU WON!") {
+    playerScore = playerScore + 1;
+    playerScoreEl.textContent = playerScore.toString();
+  }
+}
