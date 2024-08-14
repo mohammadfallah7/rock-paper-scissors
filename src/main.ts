@@ -4,6 +4,13 @@ import { getComputerMove } from "./get-computer-move";
 import { determineWinner } from "./determine-winner";
 
 export type Move = "rock" | "paper" | "scissors";
+type LastGame = {
+  playerScore: number;
+  computerScore: number;
+  result: string;
+  playerMove: string;
+  computerMove: string;
+};
 let playerScore = 0;
 let computerScore = 0;
 
@@ -14,7 +21,11 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <img id="toggle-theme" alt="Theme" class="cursor-pointer" />
     </div>
 
-    <div class="flex justify-between items-center mt-16">
+    <div class="flex items-center justify-center my-10">
+      <button id="reset" class="text-lg">RESET THE TOUR</button>
+    </div>
+
+    <div class="flex justify-between items-center">
       <div class="flex flex-col items-center gap-3">
         <span>PLAYER SCORE:</span>
         <span id="player-score" class="text-2xl font-bold">${playerScore}</span>
@@ -25,7 +36,13 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       </div>
     </div>
 
-    <h2 id="result" class="text-5xl text-center mt-8"></h2>
+    <h2 id="result" class="text-5xl text-center my-12"></h2>
+
+    <div class="flex justify-around items-center">
+      <div id="player-move"></div>
+      <span>vs</span>
+      <div id="computer-move"></div>
+    </div>
 
     <div class="flex flex-col gap-8 mt-16">
       <p class="text-center text-base font-thin">Choose your move, rock paper or scissors?</p>
@@ -38,11 +55,20 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-document.addEventListener("DOMContentLoaded", () => {
-  const toggleTheme = document.querySelector("#toggle-theme") as HTMLElement;
-  const currentTheme = localStorage.getItem("theme") ?? "light";
-  const rootEl = document.querySelector("html") as HTMLElement;
+const rootEl = <HTMLElement>document.querySelector("html");
+const toggleTheme = <HTMLElement>document.querySelector("#toggle-theme");
+const resetEl = <HTMLButtonElement>document.querySelector("#reset");
+const playerScoreEl = <HTMLSpanElement>document.querySelector("#player-score");
+const computerScoreEl = document.querySelector(
+  "#computer-score"
+) as HTMLSpanElement;
+const resultEl = <HTMLHeadingElement>document.querySelector("#result");
+const playerMoveEl = <HTMLElement>document.querySelector("#player-move");
+const computerMoveEl = <HTMLElement>document.querySelector("#computer-move");
+const userActions = <HTMLElement>document.querySelector("#user-actions");
 
+document.addEventListener("DOMContentLoaded", () => {
+  const currentTheme = localStorage.getItem("theme") ?? "light";
   themeIcon(currentTheme, toggleTheme);
   rootEl.setAttribute("data-theme", currentTheme);
 
@@ -57,31 +83,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function playGame(playerMove: Move): void {
-  const resultEl = document.querySelector("#result") as HTMLHeadingElement;
-  const playerScoreEl = document.querySelector(
-    "#player-score"
-  ) as HTMLSpanElement;
-  const computerScoreEl = document.querySelector(
-    "#computer-score"
-  ) as HTMLSpanElement;
-
   const computerMove = getComputerMove();
-  console.log(`Player chose: ${playerMove}`);
-  console.log(`Computer chose: ${computerMove}`);
+
+  playerMoveEl.textContent = playerMove;
+  computerMoveEl.textContent = computerMove;
 
   const result = determineWinner(playerMove, computerMove);
   resultEl.textContent = result;
 
   if (result === "COMPUTER WON!") {
-    computerScoreEl.textContent = (++computerScore).toString();
-    console.log(`Computer Score: ${computerScore}`);
+    computerScore = computerScore + 1;
+    computerScoreEl.textContent = computerScore.toString();
   } else if (result === "YOU WON!") {
-    playerScoreEl.textContent = (++playerScore).toString();
-    console.log(`Player Score: ${playerScore}`);
+    playerScore = playerScore + 1;
+    playerScoreEl.textContent = playerScore.toString();
   }
 }
-
-const userActions = document.querySelector("#user-actions") as HTMLElement;
 
 userActions.addEventListener("click", (event) => {
   const button = event.target as HTMLButtonElement;
